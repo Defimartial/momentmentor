@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Borrow My Brain – Peer Advice Network</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    h1, h2, h3 {
+      font-family: 'Merriweather', serif;
+    }
+    
+    .gradient-accent {
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    }
+    
+    .clip-card {
+      transition: all 0.3s ease;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .clip-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(59, 130, 246, 0.1);
+      border-color: #3b82f6;
+    }
+    
+    .play-btn {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #3b82f6;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .play-btn:hover {
+      transform: scale(1.1);
+      background: #1e40af;
+    }
+    
+    .record-btn {
+      background: #3b82f6;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .record-btn:hover {
+      background: #1e40af;
+      transform: translateY(-2px);
+    }
+    
+    .record-btn.recording {
+      background: #ef4444;
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .expertise-tag {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .search-input {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px 16px;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .video-preview {
+      width: 100%;
+      border-radius: 8px;
+      background: #f3f4f6;
+    }
+    
+    .duration-badge {
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="bg-slate-50">
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-6 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-slate-900">Borrow My Brain</h1>
+          <p class="text-slate-600 text-sm mt-1">5-minute advice from people who know</p>
+        </div>
+        <button class="record-btn" id="shareBtn">
+          + Share Your Expertise
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Search & Filter -->
+  <div class="bg-white border-b border-slate-200 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-6 py-4">
+      <div class="flex gap-4 items-end">
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-slate-700 mb-2">What do you need help with?</label>
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="e.g., fixing a car, baking bread, interview tips..."
+          >
+        </div>
+        <button 
+          class="record-btn"
+          id="filterBtn"
+          style="background: white; color: #3b82f6; border: 1px solid #3b82f6; margin-bottom: 0;"
+        >
+          All Topics
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-6 py-12">
+    <!-- Featured Section -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-bold text-slate-900 mb-6">Featured Advice</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="clipsContainer">
+        <!-- Clips will be inserted here -->
+      </div>
+    </section>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="text-center py-12" style="display: none;">
+      <div class="text-6xl mb-4">🔍</div>
+      <h3 class="text-lg font-semibold text-slate-900 mb-2">No clips found</h3>
+      <p class="text-slate-600">Be the first to share your expertise in this area!</p>
+    </div>
+  </main>
+
+  <!-- Record Modal -->
+  <div class="modal" id="recordModal">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-slate-900">Share Your Expertise</h2>
+        <button class="text-slate-400 text-2xl" id="closeRecordModal">×</button>
+      </div>
+
+      <form id="recordForm" class="space-y-6">
+        <!-- Expertise Selection -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-3">What's your expertise?</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" class="expertise-option text-left px-4 py-3 border border-slate-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition" data-expertise="Practical Skills">🔧 Practical Skills</button>
+            <button type="button" class="expertise-option text-left px-4 py-3 border border-slate-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition" data-expertise="Cooking & Food">🍳 Cooking & Food</button>
+            <button type="button" class="expertise-option text-left px-4 py-3 border border-slate-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition" data-expertise="Career & Interviews">💼 Career & Interviews</button>
+            <button type="button" class="expertise-option text-left px-4 py-3 border border-slate-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition" data-expertise="Wellness & Mindfulness">🧘 Wellness & Mindfulness</button>
+            <button type="button" class="expertise-option text-left px-4 py-3 border border-slate-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition" data-expertise="Negotiation & Sales">💬 Negotiation & Sales</button>
+            <button type="button" class="expertise-option text-left px-4 py-3 border border-slate-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition" data-expertise="Creative Arts">🎨 Creative Arts</button>
+          </div>
+          <input type="hidden" id="expertiseInput">
+        </div>
+
+        <!-- Title -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Give your tip a title</label>
+          <input 
+            type="text" 
+            id="titleInput" 
+            class="search-input"
+            placeholder="e.g., How to negotiate car prices"
+            required
+          >
+        </div>
+
+        <!-- Video Recording -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-3">Record your advice (up to 5 minutes)</label>
+          <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 bg-slate-50 text-center" id="videoContainer">
+            <video id="videoPreview" class="video-preview mb-4" style="display: none;"></video>
+            <div id="recordingPrompt">
+              <p class="text-slate-600 mb-4">📹 Click below to start recording</p>
+              <button 
+                type="button" 
+                class="record-btn" 
+                id="startRecordBtn"
+              >
+                Start Recording
+              </button>
+            </div>
+            <div id="recordingControls" style="display: none;" class="flex gap-3 justify-center">
+              <button type="button" class="record-btn recording" id="stopRecordBtn">
+                ● Stop Recording
+              </button>
+              <button 
+                type="button" 
+                class="record-btn" 
+                id="retryRecordBtn"
+                style="background: #64748b;"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Name & Contact -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Your name</label>
+          <input 
+            type="text" 
+            id="nameInput" 
+            class="search-input"
+            placeholder="Your name"
+            required
+          >
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3">
+          <button 
+            type="button" 
+            class="record-btn" 
+            id="cancelRecordBtn"
+            style="background: #e5e7eb; color: #374151;"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="record-btn flex-1"
+            id="submitBtn"
+          >
+            Publish Clip
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Watch Modal -->
+  <div class="modal" id="watchModal">
+    <div class="modal-content">
+      <button class="text-slate-400 text-2xl mb-4" id="closeWatchModal">×</button>
+      <video id="watchVideo" class="video-preview mb-4"></video>
+      <div id="watchInfo">
+        <h2 id="watchTitle" class="text-2xl font-bold text-slate-900 mb-2"></h2>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full gradient-accent"></div>
+          <div>
+            <p id="watchName" class="font-semibold text-slate-900"></p>
+            <p id="watchExpertise" class="text-sm text-slate-600"></p>
+          </div>
+        </div>
+        <p id="watchDescription" class="text-slate-600 text-sm leading-relaxed"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
